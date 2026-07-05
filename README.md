@@ -1,1 +1,1 @@
-# Secure-Password-Sharing-Application
+# Secure Password Sharing Application
