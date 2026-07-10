@@ -21,7 +21,7 @@ function Register(){
     return(
         <div className='min-h-screen select-none px-4 py-6'>
             <form className='flex flex-col space-y-4 p-4 bg-gray-700 rounded-lg shadow-md max-w-md w-full mx-auto mt-20'>
-                <h2 className='font-bold text-l text-center'>Register</h2>
+                <h2 className='font-bold text-xl text-center'>Register</h2>
                 <div className="flex flex-col">
                     <label>Email</label>
                     <input 

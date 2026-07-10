@@ -11,3 +11,11 @@ body {
 .main-buttons{
     @apply bg-gray-800 font-bold cursor-pointer w-1/2 h-10 rounded-2xl transform transition-transform duration-200 hover:scale-105 mx-auto
 }
+
+.profile-button{
+    @apply w-10 h-10 cursor-pointer border-3 border-black rounded-full p-1 transform transition-transform duration-200 hover:scale-105
+}
+
+.user-menu{
+    @apply absolute right-5 mt-2 w-64 bg-gray-600 border border-black divide-y divide-gray-100 rounded-md shadow-lg ring-2 ring-black focus:outline-none z-50
+}
