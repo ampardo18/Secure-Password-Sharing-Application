@@ -11,13 +11,27 @@ export async function up(queryInterface, Sequelize) {
       type: Sequelize.STRING
     },
     password: {
-      type: Sequelize.STRING
+      type: Sequelize.STRING,
+        allowNull: false,
+        validate: {
+          len: [8, 200], 
+          is: /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/ 
+      }
     },
     encryption_key: {
-      type: Sequelize.STRING
+      type: Sequelize.STRING,
+        allowNull: false,
+        validate: {
+          len: [8, 200]
+      }
     },
     email: {
-      type: Sequelize.STRING
+      type: Sequelize.STRING,
+      allowNull: false,
+        unique: true,
+        validate: {
+          isEmail: true
+      }
     },
     createdAt: {
       allowNull: false,

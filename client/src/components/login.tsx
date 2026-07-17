@@ -18,6 +18,14 @@ function Login(){
         })
     }
 
+    const handleLogin = async (e: React.FormEvent) => {
+        try{
+            
+        } catch(error){
+
+        }
+    }
+
     return(
         <div className='min-h-screen select-none px-4 py-6'>
             <form className='flex flex-col space-y-4 p-4 bg-gray-700 rounded-lg shadow-md max-w-md w-full mx-auto mt-20'>
