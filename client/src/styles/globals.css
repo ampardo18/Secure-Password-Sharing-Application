@@ -19,3 +19,7 @@ body {
 .user-menu{
     @apply absolute right-5 mt-2 w-64 bg-gray-600 border border-black divide-y divide-gray-100 rounded-md shadow-lg ring-2 ring-black focus:outline-none z-50
 }
+
+.nav-bar-hover-mobile {
+    @apply hover:text-cyan-700 transition-colors;
+}

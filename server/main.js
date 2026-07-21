@@ -109,6 +109,31 @@ app.post('/logout', (req, res) => {
     res.json({message: 'Logged out successfully'})
 })
 
+app.get('/user', async (req, res) => {
+    try {
+        const modelsObj = await models.default
+        const user = await modelsObj.User.findByPk(req.auth?.id, {
+            attributes: ['first_name', 'last_name', 'email']
+        })
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' })
+        }
+
+        return res.json({
+            message: 'Success',
+            user: {
+                firstname: user.first_name,
+                lastname: user.last_name,
+                email: user.email
+            }
+        })
+    } catch (error) {
+        console.error('Error loading user:', error)
+        return res.status(500).json({ message: 'Server error' })
+    }
+})
+
 app.post('/passwords/save', async (req, res, next) => {
   const { url, username, password, encryption_key, label } = req.body
   const userId = req.auth?.id
