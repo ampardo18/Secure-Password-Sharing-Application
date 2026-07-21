@@ -6,7 +6,8 @@ function Register(){
     const [formData, setFormData] = useState({
         email: '',
         password: '',
-        name: '',
+        first_name: '',
+        last_name: '',
         encryption_key: ''
     })
 
@@ -18,9 +19,38 @@ function Register(){
         })
     }
 
+    const handleRegister = async (e: React.FormEvent) => {
+        e.preventDefault()
+        try{
+            const response = await fetch(`${import.meta.env.VITE_PUBLIC_HOST}/register`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    email: formData.email,
+                    password: formData.password,
+                    first_name: formData.first_name,
+                    last_name: formData.last_name,
+                    encryption_key: formData.encryption_key
+                })
+            })
+
+            const data = await response.json()
+            if (response.ok){
+                navigate('/login', {replace: true})
+            } else{
+                alert(data.message || "Registration failed")
+            }
+
+        }catch(error){
+            console.error(error)
+        }
+    }
+
     return(
         <div className='min-h-screen select-none px-4 py-6'>
-            <form className='flex flex-col space-y-4 p-4 bg-gray-700 rounded-lg shadow-md max-w-md w-full mx-auto mt-20'>
+            <form onSubmit={handleRegister} className='flex flex-col space-y-4 p-4 bg-gray-700 rounded-lg shadow-md max-w-md w-full mx-auto mt-10'>
                 <h2 className='font-bold text-xl text-center'>Register</h2>
                 <div className="flex flex-col">
                     <label>Email</label>
@@ -30,7 +60,7 @@ function Register(){
                         value={formData.email}
                         onChange={handleChange}
                         required
-                        className="w-full border rounded p-1"
+                        className="w-full border-2 rounded p-1"
                     />
                 </div>
                 <div className="flex flex-col">
@@ -41,29 +71,40 @@ function Register(){
                         value={formData.password}
                         onChange={handleChange}
                         required
-                        className="w-full border rounded p-1"
+                        className="w-full border-2 rounded p-1"
                     />
                 </div>
                 <div className="flex flex-col">
-                    <label>Name</label>
+                    <label>First Name</label>
                     <input 
                         type="text"
-                        name="name"
-                        value={formData.name}
+                        name="first_name"
+                        value={formData.first_name}
                         onChange={handleChange}
                         required
-                        className="w-full border rounded p-1"
+                        className="w-full border-2 rounded p-1"
+                    />
+                </div>
+                <div className='flex flex-col'>
+                    <label>Last Name</label>
+                    <input 
+                        type='text'
+                        name='last_name'
+                        value={formData.last_name}
+                        onChange={handleChange}
+                        required
+                        className='w-full border-2 rounded p-1'
                     />
                 </div>
                 <div className="flex flex-col">
                     <label>Encryption Key</label>
                     <input 
                         type="password"
-                        name="firstname"
+                        name="encryption_key"
                         value={formData.encryption_key}
                         onChange={handleChange}
                         required
-                        className="w-full border rounded p-1"
+                        className="w-full border-2 rounded p-1"
                     />
                 </div>
                 <button type='submit' className='main-buttons'>Register</button>

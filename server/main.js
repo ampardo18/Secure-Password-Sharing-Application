@@ -1,10 +1,13 @@
 import express from 'express'
+import cors from 'cors'
 import * as models from './models/index.js'
 import * as bodyParser from 'body-parser'
 import bcrypt from 'bcryptjs'
 import * as JWT from 'jsonwebtoken'
 import {expressjwt} from 'express-jwt'
 import crypto from 'crypto'
+
+const COOKIE_NAME = 'authToken'
 
 const app = express()
 const port = process.env.PORT || 3000
@@ -14,37 +17,58 @@ app.listen(port, () => {
 })
 
 app.use(bodyParser.default.json())
+app.use(cors({
+  origin: ['http://localhost:5173', 'http://127.0.0.1:5173'],
+  credentials: true
+}))
 
 app.use(
   expressjwt({
     secret: process.env.JWT_SECRET,
     algorithms: ["HS256"],
-  }).unless({ path: ["/login", "/signup"]})
+    getToken: (req) => {
+      const authHeader = req.headers.authorization
+      if (authHeader?.startsWith('Bearer ')) {
+        return authHeader.slice(7)
+      }
 
+      const cookieHeader = req.headers.cookie || ''
+      const authCookie = cookieHeader
+        .split(';')
+        .map((cookie) => cookie.trim())
+        .find((cookie) => cookie.startsWith(`${COOKIE_NAME}=`))
+
+      if (!authCookie) {
+        return null
+      }
+
+      return decodeURIComponent(authCookie.slice(COOKIE_NAME.length + 1))
+    }
+  }).unless({ path: ["/login", "/register", "/logout"]})
 )
 
-app.post("/signup", async (req, res, next) => {
-    const { email, password, encryption_key, name } = req.body
+app.post("/register", async (req, res, next) => {
+    const { email, password, first_name, last_name, encryption_key } = req.body
     console.log("Received body:", req.body) 
     const modelsObj=await models.default
     try {
-        const emailExists = await modelsObj.User.findOne({attributes: [ 'id' ], where: { email } })
+        const emailExists = await modelsObj.User.findOne({where: { email } })
         if (emailExists) {
           res.status(400)
-          return res.json({ message: "Email already exists", "sys_message": "email_exists" })
+          return res.json({ message: "Email already exists" })
         }
-        const hashedPassword = await hashStr(password);
+        const hashedPassword = await hashStr(password)
         const result = await modelsObj.User.create({ 
           email, 
           password: hashedPassword, 
           encryption_key: await hashStr(encryption_key), 
-          name 
+          first_name, 
+          last_name 
         });
         res.json({ message: "Sign up is successful" })
     } catch (error) {
-        console.error("Error during sign up:", error)
+        console.error('Error during  sign up', error)
         res.status(500)
-        res.json({message: "Something went wrong"})
     }
 })
 
@@ -52,28 +76,42 @@ app.post('/login', async (req, res, next) => {
     const { email, password } = req.body
     const modelsObj=await models.default
     try {
-        const user = await modelsObj.User.findOne({ where: { email } });
+        const user = await modelsObj.User.findOne({ where: { email } })
         if (!user) {
             res.status(400);
-            return res.json({ message: "Invalid email or password", "sys_message": "invalid_email_or_password" });
+            return res.json({ message: "Invalid email" })
         }
         const isPasswordValid = await bcrypt.compare(password, user.password)
         if (!isPasswordValid) {
             res.status(400)
-            return res.json({ message: "Invalid email or password", "sys_message": "invalid_email_or_password" })
+            return res.json({ message: "Invalid password" })
         }
         const token = await generateJWT(user)
-        res.json({ message: "Login successful", token })
+        res.cookie(COOKIE_NAME, token, {
+            httpOnly: true,
+            sameSite: 'lax',
+            secure: false,
+            maxAge: 1000 * 60 * 60 * 8
+        })
+        res.json({ message: "Login successful" })
     } catch (error) {
         console.error("Error during login:", error)
         res.status(500)
-        res.json({message: "Something went wrong"})
     }
+})
+
+app.post('/logout', (req, res) => {
+    res.clearCookie('authToken', {
+        httpOnly: true, 
+        sameSite: 'lax',
+        secure: false
+    })
+    res.json({message: 'Logged out successfully'})
 })
 
 app.post('/passwords/save', async (req, res, next) => {
   const { url, username, password, encryption_key, label } = req.body
-  const userId = req.auth.id
+  const userId = req.auth?.id
   const modelsObj = await models.default
   const userRecord = await modelsObj.User.findOne({
     attributes: ['encryption_key'], where: {id: userId}
@@ -105,7 +143,7 @@ app.post('/passwords/save', async (req, res, next) => {
 
 
 app.post('/passwords/list', async (req, res, next) => {
-    const userId = req.auth.id;
+    const userId = req.auth?.id;
     const encryptionKey = req.body.encryption_key;
     const modelsObj = await models.default;
     let passwords = await modelsObj.UserPassword.findAll({
@@ -136,7 +174,7 @@ app.post('/passwords/list', async (req, res, next) => {
 app.post('/passwords/share-password', async (req, res, next) => {
     try {
         const {password_id, encryption_key, email} = req.body
-        const userId = req.auth.id
+        const userId = req.auth?.id
         const modelsObj = await models.default
         const passwordRow = await modelsObj.UserPassword.findOne({
             attributes: ['label', 'url', 'username', 'password'], where: { id: password_id, ownerUserId: userId}

@@ -21,13 +21,17 @@ export async function up(queryInterface, Sequelize) {
       type: Sequelize.STRING,
       allowNull: false
     },
-    username: {
+    email: {
       type: Sequelize.STRING,
       allowNull: false
     },
     password: {
       type: Sequelize.STRING,
       allowNull: false
+    },
+    label: {
+      type: Sequelize.STRING,
+      allowNull: true
     },
     sharedByUserId: {
       type: Sequelize.UUID,
@@ -42,7 +46,7 @@ export async function up(queryInterface, Sequelize) {
     weak_encryption: {
         type: Sequelize.BOOLEAN,
         defaultValue: false
-      },
+    },
     source_password_id: {
         type: Sequelize.UUID,
         allowNull: true,

@@ -7,7 +7,10 @@ export async function up(queryInterface, Sequelize) {
       defaultValue: Sequelize.UUIDV4,
       type: Sequelize.UUID
     },
-    name: {
+    first_name: {
+      type: Sequelize.STRING
+    },
+    last_name: {
       type: Sequelize.STRING
     },
     password: {

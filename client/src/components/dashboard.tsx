@@ -4,7 +4,7 @@ import profileIcon from '../assets/profile-icon.png'
 import {useRef, useState, useEffect} from 'react'
 
 function Dashboard(){
-
+    const navigate = useNavigate()
     const [isProfileOpen, setIsProfileOpen] = useState(false)
     const profileRef = useRef<HTMLDivElement | null>(null)
 
@@ -22,6 +22,14 @@ function Dashboard(){
         })
     }, [])
 
+    const handleLogout = async () => {
+        await fetch(`${import.meta.env.VITE_PUBLIC_HOST}/logout`, {
+            method: 'POST',
+            credentials: 'include'
+        })
+        navigate('/login', {replace: true})
+    }
+
     return(
         <div className='min-h-screen select-none'>
             <header className='bg-gray-700 h-20'>
@@ -38,7 +46,7 @@ function Dashboard(){
                                     <img src={profileIcon} className='w-10 h-10 border-3 rounded-full' />
                                     <p className='text-sm'>Signed as in: </p>
                                     <p className='text-sm'>first last</p>
-                                    <button className='main-buttons mb-2'>Logout</button>
+                                    <button onClick={handleLogout} className='main-buttons mb-2'>Logout</button>
                                 </div>
                             </div>
                         )}

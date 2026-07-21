@@ -14,9 +14,16 @@ export default (sequelize, DataTypes) => {
     }
   }
   UserPassword.init({
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      allowNull: false,
+      primaryKey: true
+    },
     ownerUserId: DataTypes.UUID,
     url: DataTypes.STRING,
-    username: DataTypes.STRING,
+    email: DataTypes.STRING,
+    label: DataTypes.STRING,
     password: DataTypes.STRING,
     sharedByUserId: DataTypes.UUID,
     weak_encryption: DataTypes.BOOLEAN,

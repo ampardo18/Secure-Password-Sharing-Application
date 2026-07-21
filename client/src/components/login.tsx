@@ -19,16 +19,35 @@ function Login(){
     }
 
     const handleLogin = async (e: React.FormEvent) => {
+        e.preventDefault()
         try{
-            
-        } catch(error){
+            const response = await fetch(`${import.meta.env.VITE_PUBLIC_HOST}/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                    email: formData.email,
+                    password: formData.password
+                })
+            })
 
+            const data = await response.json()
+            if (response.ok) {
+                navigate('/dashboard', { replace: true })
+            } else {
+                alert(data.message || 'Login failed')
+            }
+        } catch (error) {
+            console.error(error)
+            alert('Login failed')
         }
     }
 
     return(
         <div className='min-h-screen select-none px-4 py-6'>
-            <form className='flex flex-col space-y-4 p-4 bg-gray-700 rounded-lg shadow-md max-w-md w-full mx-auto mt-20'>
+            <form onSubmit={handleLogin} className='flex flex-col space-y-4 p-4 bg-gray-700 rounded-lg shadow-md max-w-md w-full mx-auto mt-20'>
                 <h2 className='text-xl font-bold text-center'>Log-in</h2>
                 <div className='flex flex-col'>
                     <label>Email</label>
@@ -38,7 +57,7 @@ function Login(){
                         value={formData.email}
                         onChange={handleChange}
                         required
-                        className='w-full border rounded p-1'
+                        className='w-full border-2 rounded p-1'
                     />
                 </div>
                 <div className='flex flex-col'>
@@ -49,7 +68,7 @@ function Login(){
                         value={formData.password}
                         onChange={handleChange}
                         required
-                        className='w-full border rounded p-1'
+                        className='w-full border-2 rounded p-1'
                     />
                 </div>
                 <button type='submit' className='main-buttons'>Sign-in</button>

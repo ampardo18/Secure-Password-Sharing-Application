@@ -4,7 +4,7 @@ import { basename, dirname } from "path";
 import { Sequelize, DataTypes } from "sequelize";
 import { fileURLToPath } from 'url';
 const env = process.env.NODE_ENV || 'production';
-import configuration from '../config/config.jsnpm '
+import configuration from '../config/config.js'
 const config = configuration[env] || 'production';
 
 const __filename = fileURLToPath(import.meta.url);

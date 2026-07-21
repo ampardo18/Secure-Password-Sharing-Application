@@ -17,7 +17,13 @@ export default (sequelize, DataTypes) => {
     }
   }
   User.init({
-    name: {
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      allowNull: false,
+      primaryKey: true 
+    },
+    first_name: {
       type: DataTypes.STRING,
       allowNull: false,
       validate: {
@@ -25,7 +31,23 @@ export default (sequelize, DataTypes) => {
           msg: "Name is required"
         },
         isAlphanumeric: {
-          msg: "Name can only contain letters and numbers"
+          msg: "Name can only contain letters"
+        },
+        len: {
+          args: [2, 100],
+          msg: "Name must be between 2 and 100 characters"
+        }
+      }
+    },
+    last_name: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: {
+        notEmpty: {
+          msg: "Name is required"
+        },
+        isAlphanumeric: {
+          msg: "Name can only contain letters"
         },
         len: {
           args: [2, 100],
