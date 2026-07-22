@@ -2,7 +2,7 @@ import '../styles/globals.css'
 import { useNavigate } from 'react-router-dom'
 import profileIcon from '../assets/profile-icon.png'
 import {useRef, useState, useEffect} from 'react'
-import { X } from 'lucide-react'
+import { X, Plus } from 'lucide-react'
 
 function Dashboard(){
     const navigate = useNavigate()
@@ -62,21 +62,24 @@ function Dashboard(){
             <header className='bg-gray-700 h-20'>
                 <div className='flex items-center justify-between p-4'>
                     <h1 className='font-bold text-xl text-center p-4 text-white'>Welcome, {user?.firstname}!</h1>
-                    <button
-                        type='button'
-                        onClick={() => setNavOpen((prev) => !prev)}
-                        className='md:hidden rounded-lg border border-gray-300 bg-gray-800 p-3 text-white transition-transform duration-200 hover:scale-110 ml-auto'
-                        aria-expanded={navOpen}
-                        aria-label='Toggle navigation'
-                    >
-                        <div className='flex flex-col gap-1'>
-                            <span className='block h-0.5 w-6 bg-white'></span>
-                            <span className='block h-0.5 w-6 bg-white'></span>
-                            <span className='block h-0.5 w-6 bg-white'></span>
-                        </div>
-                    </button>
-
-                    <div className='relative hidden md:block' ref={profileRef}>
+                    <div className='ml-auto flex items-center gap-10'>
+                        <button
+                            type='button'
+                            onClick={() => setNavOpen((prev) => !prev)}
+                            className='md:hidden rounded-lg border border-gray-300 bg-gray-800 p-3 text-white transition-transform duration-200 hover:scale-110'
+                            aria-expanded={navOpen}
+                            aria-label='Toggle navigation'
+                        >
+                            <div className='flex flex-col gap-1'>
+                                <span className='block h-0.5 w-6 bg-white'></span>
+                                <span className='block h-0.5 w-6 bg-white'></span>
+                                <span className='block h-0.5 w-6 bg-white'></span>
+                            </div>
+                        </button>
+                        <button onClick={() => navigate('/new-password', {replace: true})} className='cursor-pointer hidden md:flex items-center justify-center rounded-full p-2 text-white transition-transform duration-200 hover:scale-115 bg-gray-400'>
+                            <Plus size={20} />
+                        </button>
+                        <div className='relative hidden md:block' ref={profileRef}>
                         <button className='profile-button' onClick={() => setIsProfileOpen(!isProfileOpen)}>
                             <img src={profileIcon} alt='profile' />
                         </button>
@@ -91,6 +94,7 @@ function Dashboard(){
                                 </div>
                             </div>
                         )}
+                        </div>
                     </div>
                 </div>
             </header>
@@ -136,6 +140,12 @@ function Dashboard(){
                     </div>
                 </div>
             </div>
+            <button 
+                className='flex md:hidden fixed bottom-6 right-6 z-50 rounded-full shadow-lg bg-gray-400 p-3 transform transition-transform hover:scale-115'
+                onClick={() => navigate('/new-password', {replace: true})}
+                >
+                <Plus size={20}/>
+            </button>
         </div>
     )
 }

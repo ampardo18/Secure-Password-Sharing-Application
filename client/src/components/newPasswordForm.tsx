@@ -1,6 +1,7 @@
 import '../styles/globals.css'
 import { useNavigate } from 'react-router-dom'
 import React, { useState } from 'react'
+import { MoveLeft } from 'lucide-react'
 
 function NewPasswordForm(){
     const navgiate = useNavigate()
@@ -22,6 +23,13 @@ function NewPasswordForm(){
 
     return(
         <div className='min-h-screen select-none px-4 py-6'>
+            <div
+                onClick={() => navgiate('/dashboard', {replace: true})}
+                className='md:cursor-pointer mb-5 flex items-center gap-1 w-fit transform transition-transform duration-200 hover:scale-115 text-l font-bold'
+            >
+                <MoveLeft/>
+                <span className='hidden md:inline'>Back</span>
+            </div>
             <form className='flex flex-col space-y-4 p-4 bg-gray-700 rounded-lg shadow-md max-w-md w-full mx-auto mt-20'>
                 <h2 className='font-bold text-xl text-center'>Save Password</h2>
                 <div className='flex flex-col'>

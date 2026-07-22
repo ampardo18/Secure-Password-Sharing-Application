@@ -74,7 +74,7 @@ app.post("/register", async (req, res, next) => {
 
 app.post('/login', async (req, res, next) => {
     const { email, password } = req.body
-    const modelsObj=await models.default
+    const modelsObj = await models.default
     try {
         const user = await modelsObj.User.findOne({ where: { email } })
         if (!user) {
@@ -112,7 +112,8 @@ app.post('/logout', (req, res) => {
 app.get('/user', async (req, res) => {
     try {
         const modelsObj = await models.default
-        const user = await modelsObj.User.findByPk(req.auth?.id, {
+        const userID = req.auth?.id
+        const user = await modelsObj.User.findByPk(userID, {
             attributes: ['first_name', 'last_name', 'email']
         })
 
@@ -134,12 +135,12 @@ app.get('/user', async (req, res) => {
     }
 })
 
-app.post('/passwords/save', async (req, res, next) => {
-  const { url, username, password, encryption_key, label } = req.body
-  const userId = req.auth?.id
+app.post('/passwords/save', async (req, res) => {
+  const { url, password, encryption_key, label } = req.body
+  const userID = req.auth?.id
   const modelsObj = await models.default
   const userRecord = await modelsObj.User.findOne({
-    attributes: ['encryption_key'], where: {id: userId}
+    attributes: ['encryption_key', 'email'], where: {id: userID}
   })
    
   if(!userRecord){
@@ -152,32 +153,32 @@ app.post('/passwords/save', async (req, res, next) => {
     res.status(400);
     return res.json({ message: 'Incorrect encryption key' })
   }
-  if(!(username && password && url)) {
+  if(!(password && url)) {
     res.status(400);
     return res.json({ message: 'Missing parameters' })
   }
 
-  const encryptedUsername = encrypt(username, encryption_key)
+  const encryptedEmail = encrypt(userRecord.email, encryption_key)
   const encryptedPassword = encrypt(password, encryption_key)
   const result = await modelsObj.UserPassword.create({
-        ownerUserId: userId, password: encryptedPassword, username: encryptedUsername, url, label
+        ownerUserId: userId, password: encryptedPassword, email: encryptedEmail, url, label
     })
    res.status(200)
    res.json({message: 'Password is saved'})
 });
 
 
-app.post('/passwords/list', async (req, res, next) => {
-    const userId = req.auth?.id;
-    const encryptionKey = req.body.encryption_key;
-    const modelsObj = await models.default;
+app.post('/passwords/list', async (req, res) => {
+    const userId = req.auth?.id
+    const encryptionKey = req.body.encryption_key
+    const modelsObj = await models.default
     let passwords = await modelsObj.UserPassword.findAll({
-        attributes: ['id', 'url', 'username', 'password', 'label', 'weak_encryption'],
+        attributes: ['url', 'password', 'label', 'weak_encryption'],
         where: { ownerUserId: userId },
         order: [['id', 'DESC']]
     });
     const userRecord = await modelsObj.User.findOne({
-        attributes: ['encryption_key'], where: { id: userId }
+        attributes: ['encryption_key', 'email'], where: { id: userId }
     });
     const matched = await bcrypt.compare(encryptionKey, userRecord.encryption_key)
     if (!matched) {
@@ -188,7 +189,7 @@ app.post('/passwords/list', async (req, res, next) => {
         passwords.map(async (element) => {
             await upgradeWeakEncryption(element, userRecord, encryptionKey)
             element.password = decrypt(element.password, encryptionKey)
-            element.username = decrypt(element.username, encryptionKey)
+            element.email = userRecord.email
             return element
         })
     );
@@ -196,13 +197,13 @@ app.post('/passwords/list', async (req, res, next) => {
     res.json({message: 'Success', data: passwordsArr})
 });
 
-app.post('/passwords/share-password', async (req, res, next) => {
+app.post('/passwords/share-password', async (req, res) => {
     try {
         const {password_id, encryption_key, email} = req.body
         const userId = req.auth?.id
         const modelsObj = await models.default
         const passwordRow = await modelsObj.UserPassword.findOne({
-            attributes: ['label', 'url', 'username', 'password'], where: { id: password_id, ownerUserId: userId}
+            attributes: ['label', 'url', 'email', 'password'], where: { id: password_id, ownerUserId: userId}
         });
         if (!passwordRow) {
             res.status(400)
@@ -228,15 +229,15 @@ app.post('/passwords/share-password', async (req, res, next) => {
             res.status(400)
             return res.json({message: `This password is already shared with the user`})
         }
-        const decryptedUserName = decrypt(passwordRow.username, encryption_key)
-        const encryptedSharedUserName = encrypt(decryptedUserName, shareUserObj.encryption_key)
+        const decryptedEmail = decrypt(passwordRow.email, encryption_key)
+        const encryptedSharedEmail = encrypt(decryptedEmail, shareUserObj.encryption_key)
         const decryptedPassword = decrypt(passwordRow.password, encryption_key)
         const encryptedSharedPassword = encrypt(decryptedPassword, shareUserObj.encryption_key)
         const newPassword = {
             ownerUserId: shareUserObj.id,
             label: passwordRow.label,
             url: passwordRow.url,
-            username: encryptedSharedUserName,
+            email: encryptedSharedEmail,
             password: encryptedSharedPassword,
             sharedByUserId: userId,
             weak_encryption: true,
@@ -291,9 +292,9 @@ function decrypt(encStr, key) {
 async function upgradeWeakEncryption(element, userRecord, encryptionKey) {
     if (element.weak_encryption) {
         const decryptedPassword = decrypt(element.password, userRecord.encryption_key)
-        const decryptedUserName = decrypt(element.username, userRecord.encryption_key)
+        const decryptedEmail = decrypt(element.email, userRecord.encryption_key)
         element.password = encrypt(decryptedPassword, encryptionKey)
-        element.username = encrypt(decryptedUserName, encryptionKey)
+        element.email = encrypt(decryptedEmail, encryptionKey)
         element.weak_encryption = false
         await element.save();
     }
