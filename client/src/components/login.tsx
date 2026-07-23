@@ -1,13 +1,16 @@
 import { Link, useNavigate } from "react-router-dom";
 import React, { useState } from 'react'
 import '../styles/globals.css'
+import { useEncryptionKey } from '../lib/EncryptionKeyContext'
 
 function Login(){
     const navigate = useNavigate()
+    const { setEncryptionKey } = useEncryptionKey()
 
     const [formData, setFormData] = useState({
         email: '',
-        password: ''
+        password: '',
+        encryption_key: ''
     })
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -29,12 +32,14 @@ function Login(){
                 credentials: 'include',
                 body: JSON.stringify({
                     email: formData.email,
-                    password: formData.password
+                    password: formData.password,
+                    encryption_key: formData.encryption_key
                 })
             })
 
             const data = await response.json()
             if (response.ok) {
+                setEncryptionKey(formData.encryption_key)
                 navigate('/dashboard', { replace: true })
             } else {
                 alert(data.message || 'Login failed')
@@ -66,6 +71,17 @@ function Login(){
                         type='password'
                         name='password'
                         value={formData.password}
+                        onChange={handleChange}
+                        required
+                        className='w-full border-2 rounded p-1'
+                    />
+                </div>
+                <div className='flex flex-col'>
+                    <label>Encryption Key</label>
+                    <input
+                        type='password'
+                        name='encryption_key'
+                        value={formData.encryption_key}
                         onChange={handleChange}
                         required
                         className='w-full border-2 rounded p-1'

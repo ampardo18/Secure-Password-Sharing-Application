@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import { MoveLeft } from 'lucide-react'
 
 function NewPasswordForm(){
-    const navgiate = useNavigate()
+    const navigate = useNavigate()
 
     const [formData, setFormData] = useState({
         url: '',
@@ -21,16 +21,45 @@ function NewPasswordForm(){
         })
     }
 
+    const handleNewPassword = async (e: React.FormEvent) => {
+        e.preventDefault()
+        try{
+            const response = await fetch(`${import.meta.env.VITE_PUBLIC_HOST}/passwords/save`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type' : 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                    url: formData.url,
+                    label: formData.label,
+                    password: formData.password,
+                    encryption_key: formData.encryption_key
+                })
+            })
+
+            const data = await response.json()
+            if(response.ok){
+                navigate('/dashboard', {replace: true})
+            }else{
+                alert(data.message || 'Registration failed')
+            }
+
+        }catch(error){
+            console.error(error)
+        }
+    }
+
     return(
         <div className='min-h-screen select-none px-4 py-6'>
             <div
-                onClick={() => navgiate('/dashboard', {replace: true})}
+                onClick={() => navigate('/dashboard', {replace: true})}
                 className='md:cursor-pointer mb-5 flex items-center gap-1 w-fit transform transition-transform duration-200 hover:scale-115 text-l font-bold'
             >
                 <MoveLeft/>
                 <span className='hidden md:inline'>Back</span>
             </div>
-            <form className='flex flex-col space-y-4 p-4 bg-gray-700 rounded-lg shadow-md max-w-md w-full mx-auto mt-20'>
+            <form onSubmit={handleNewPassword} className='flex flex-col space-y-4 p-4 bg-gray-700 rounded-lg shadow-md max-w-md w-full mx-auto mt-20'>
                 <h2 className='font-bold text-xl text-center'>Save Password</h2>
                 <div className='flex flex-col'>
                     <label>URL</label>
@@ -69,7 +98,7 @@ function NewPasswordForm(){
                     <label>Encryption Key</label>
                     <input 
                         type='password'
-                        name='encryption key'
+                        name='encryption_key'
                         value={formData.encryption_key}
                         onChange={handleChange}
                         required

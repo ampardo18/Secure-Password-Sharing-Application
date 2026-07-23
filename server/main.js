@@ -73,7 +73,7 @@ app.post("/register", async (req, res, next) => {
 })
 
 app.post('/login', async (req, res, next) => {
-    const { email, password } = req.body
+    const { email, password, encryption_key } = req.body
     const modelsObj = await models.default
     try {
         const user = await modelsObj.User.findOne({ where: { email } })
@@ -85,6 +85,11 @@ app.post('/login', async (req, res, next) => {
         if (!isPasswordValid) {
             res.status(400)
             return res.json({ message: "Invalid password" })
+        }
+        const isEncryptionKeyValid = await bcrypt.compare(encryption_key, user.encryption_key)
+        if (!encryption_key){
+            res.status(400)
+            return res.json({message: 'Invalid Password'})
         }
         const token = await generateJWT(user)
         res.cookie(COOKIE_NAME, token, {
@@ -136,44 +141,48 @@ app.get('/user', async (req, res) => {
 })
 
 app.post('/passwords/save', async (req, res) => {
-  const { url, password, encryption_key, label } = req.body
-  const userID = req.auth?.id
-  const modelsObj = await models.default
-  const userRecord = await modelsObj.User.findOne({
-    attributes: ['encryption_key', 'email'], where: {id: userID}
-  })
-   
-  if(!userRecord){
-    res.status(400);
-    return res.json({ message: 'Unable to find the account' })
-  }
+    try{
+        const { url, password, encryption_key, label } = req.body
+        const userID = req.auth?.id
+        const modelsObj = await models.default
+        const userRecord = await modelsObj.User.findOne({
+            attributes: ['encryption_key', 'email'], where: {id: userID}
+        })
+        
+        if(!userRecord){
+            res.status(400);
+            return res.json({ message: 'Unable to find the account' })
+        }
 
-  const matched = await bcrypt.compare(encryption_key, userRecord.encryption_key)
-  if(!matched){
-    res.status(400);
-    return res.json({ message: 'Incorrect encryption key' })
-  }
-  if(!(password && url)) {
-    res.status(400);
-    return res.json({ message: 'Missing parameters' })
-  }
+        const matched = await bcrypt.compare(encryption_key, userRecord.encryption_key)
+        if(!matched){
+            res.status(400);
+            return res.json({ message: 'Incorrect encryption key' })
+        }
+        if(!(password && url)) {
+            res.status(400);
+            return res.json({ message: 'Missing parameters' })
+        }
 
-  const encryptedEmail = encrypt(userRecord.email, encryption_key)
-  const encryptedPassword = encrypt(password, encryption_key)
-  const result = await modelsObj.UserPassword.create({
-        ownerUserId: userId, password: encryptedPassword, email: encryptedEmail, url, label
-    })
-   res.status(200)
-   res.json({message: 'Password is saved'})
-});
-
+        const encryptedEmail = encrypt(userRecord.email, encryption_key)
+        const encryptedPassword = encrypt(password, encryption_key)
+        const result = await modelsObj.UserPassword.create({
+                ownerUserId: userID, password: encryptedPassword, email: encryptedEmail, url, label
+            })
+        res.status(200)
+        res.json({message: 'Password is saved'})
+    }catch(error){
+        console.error(error)
+        res.status(500)
+    }
+})
 
 app.post('/passwords/list', async (req, res) => {
     const userId = req.auth?.id
     const encryptionKey = req.body.encryption_key
     const modelsObj = await models.default
     let passwords = await modelsObj.UserPassword.findAll({
-        attributes: ['url', 'password', 'label', 'weak_encryption'],
+        attributes: ['id', 'url', 'password', 'label', 'weak_encryption'],
         where: { ownerUserId: userId },
         order: [['id', 'DESC']]
     });
@@ -195,7 +204,7 @@ app.post('/passwords/list', async (req, res) => {
     );
     res.status(200)
     res.json({message: 'Success', data: passwordsArr})
-});
+})
 
 app.post('/passwords/share-password', async (req, res) => {
     try {
