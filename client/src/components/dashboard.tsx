@@ -10,8 +10,11 @@ function Dashboard(){
     const [isProfileOpen, setIsProfileOpen] = useState(false)
     const [navOpen, setNavOpen] = useState(false)
     const [ user, setUser ] = useState<{firstname: string; lastname: string; email: string} | null>(null)
-    const [ password, setPassword ] = useState<{id: string; url: string; label: string; password: string}[] | string>()
+    const [ isShareOpen, setIsShareOpen ] = useState(false)
+    const [ sharedEmail, setIsSharedEmail ] = useState('')
+    const [ password, setPassword ] = useState<{id: string; url: string; label: string; password: string; owner: string}[] | string>()
     const profileRef = useRef<HTMLDivElement | null>(null)
+    const shareRef = useRef<HTMLDivElement | null>(null)
     const [ copiedID, setCopiedID ] = useState<string | null>(null)
     const { encryptionKey, setEncryptionKey } = useEncryptionKey()
 
@@ -19,8 +22,11 @@ function Dashboard(){
         const handleOutsideClick = (event: MouseEvent) => {
             const target = event.target as Node
             const clickInsideProfile = profileRef.current?.contains(target)
-            if (!clickInsideProfile){
+            const clickInsideShare = shareRef.current?.contains(target)
+
+            if (!clickInsideProfile && !clickInsideShare){
                 setIsProfileOpen(false)
+                setIsShareOpen(false)
             }
         }
         document.addEventListener('mousedown', handleOutsideClick)
@@ -102,6 +108,25 @@ function Dashboard(){
         }
     }
 
+    const handleSharePassword = async (passwordID: string) => {
+        try{
+            await fetch(`${import.meta.env.VITE_PUBLIC_HOST}/passwords/share-password`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                    password_id: passwordID,
+                    encryption_key: encryptionKey,
+                    email: sharedEmail
+                })
+            })
+        }catch(error){
+            console.error('Failed to share password to user:', error)
+        }
+    }
+
     return(
         <div className='min-h-screen select-none'>
             <header className='bg-gray-700 h-20'>
@@ -170,11 +195,12 @@ function Dashboard(){
             <div className='px-4 py-6 flex justify-center md:justify-center lg:justify-center'>
                 <div className='w-full max-w-3xl overflow-hidden rounded-xl border border-gray-300 bg-gray-300 shadow-md mt-10 p-4'>
                     <div className='overflow-x-auto'>
-                        <table className='min-w-full text-sm'>
+                        <table className='min-w-full text-sm border-separate border-spacing-y-3'>
                             <thead className='bg-gray-300'>
                                 <tr>
                                     <th className='px-4 py-3 font-bold text-black whitespace-nowrap'>URL</th>
                                     <th className='px-4 py-3 font-bold text-black whitespace-nowrap'>Label</th>
+                                    <th className='px-4 py-3 font-bold text-black whitespace-nowrap'>Owner</th>
                                     <th className='px-4 py-3 font-bold text-black whitespace-nowrap'>Copy</th>
                                     <th className='px-4 py-3 font-bold text-black whitespace-nowrap'>Share</th>
                                 </tr>
@@ -184,6 +210,7 @@ function Dashboard(){
                                     <tr key={item.id}>
                                         <td>{item.url}</td>
                                         <td>{item.label}</td>
+                                        <td>{item.owner}</td>
                                         <td>
                                             <button
                                                 onClick={() => handleCopy(item.id, item.password)}
@@ -208,9 +235,24 @@ function Dashboard(){
                                             </button>
                                         </td>
                                         <td>
-                                            <button className='bg-gray-600 font-bold text-white cursor-pointer h-10 w-20 rounded-2xl transform transition-transform duration-200 hover:bg-gray-500 p-2'>
+                                            <button className='bg-gray-600 font-bold text-white cursor-pointer h-10 w-20 rounded-2xl transform transition-transform duration-200 hover:bg-gray-500 p-2' onClick={() => setIsShareOpen(!isShareOpen)}>
                                                 Share
                                             </button>
+                                            {isShareOpen && (
+                                                <div className='fixed inset-0 flex items-center justify-center bg-black/50'>
+                                                    <div className='bg-gray-600 p-6 rounded-lg shadow-lg w-80 flex gap-2' ref={shareRef}>
+                                                        <input
+                                                            type='text'
+                                                            placeholder='Enter username' 
+                                                            onChange={e => setIsSharedEmail(e.target.value)}    
+                                                            className='w-full border-2 border-white rounded p-2 text-white'                                                   
+                                                        />
+                                                        <button className='main-buttons text-white' onClick={() => handleSharePassword(item.id)}>
+                                                            Share
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </td>
                                     </tr>
                                 ))}

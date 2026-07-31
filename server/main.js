@@ -182,12 +182,12 @@ app.post('/passwords/list', async (req, res) => {
     const encryptionKey = req.body.encryption_key
     const modelsObj = await models.default
     let passwords = await modelsObj.UserPassword.findAll({
-        attributes: ['id', 'url', 'password', 'label', 'weak_encryption'],
+        attributes: ['id', 'url', 'email', 'password', 'label', 'weak_encryption', 'sharedByUserId'],
         where: { ownerUserId: userId },
         order: [['id', 'DESC']]
     });
     const userRecord = await modelsObj.User.findOne({
-        attributes: ['encryption_key', 'email'], where: { id: userId }
+        attributes: ['encryption_key'], where: { id: userId }
     });
     const matched = await bcrypt.compare(encryptionKey, userRecord.encryption_key)
     if (!matched) {
@@ -198,8 +198,16 @@ app.post('/passwords/list', async (req, res) => {
         passwords.map(async (element) => {
             await upgradeWeakEncryption(element, userRecord, encryptionKey)
             element.password = decrypt(element.password, encryptionKey)
-            element.email = userRecord.email
-            return element
+            element.email = decrypt(element.email, encryptionKey)
+            if(element.sharedByUserId){
+                const sharer = await modelsObj.User.findOne({
+                    attributes: ['email'], where: { id: element.sharedByUserId }
+                })
+                element.owner = sharer?.email
+            } else {
+                element.owner = 'Self'
+            }
+            return { ...element.toJSON(), owner: element.owner }
         })
     );
     res.status(200)
