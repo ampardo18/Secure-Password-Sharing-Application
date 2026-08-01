@@ -79,17 +79,17 @@ app.post('/login', async (req, res, next) => {
         const user = await modelsObj.User.findOne({ where: { email } })
         if (!user) {
             res.status(400);
-            return res.json({ message: "Invalid email" })
+            return res.json({ errors: { email: "Invalid email" } })
         }
         const isPasswordValid = await bcrypt.compare(password, user.password)
         if (!isPasswordValid) {
             res.status(400)
-            return res.json({ message: "Invalid password" })
+            return res.json({ errors: { password: "Invalid password" } })
         }
         const isEncryptionKeyValid = await bcrypt.compare(encryption_key, user.encryption_key)
-        if (!encryption_key){
+        if (!isEncryptionKeyValid){
             res.status(400)
-            return res.json({message: 'Invalid Password'})
+            return res.json({ errors: { encryption_key: "Invalid encryption key" } })
         }
         const token = await generateJWT(user)
         res.cookie(COOKIE_NAME, token, {
@@ -101,7 +101,7 @@ app.post('/login', async (req, res, next) => {
         res.json({ message: "Login successful" })
     } catch (error) {
         console.error("Error during login:", error)
-        res.status(500)
+        res.status(500).json({errors: {general: "Something went wrong. Please try again."}})
     }
 })
 
@@ -182,7 +182,7 @@ app.post('/passwords/list', async (req, res) => {
     const encryptionKey = req.body.encryption_key
     const modelsObj = await models.default
     let passwords = await modelsObj.UserPassword.findAll({
-        attributes: ['id', 'url', 'email', 'password', 'label', 'weak_encryption', 'sharedByUserId'],
+        attributes: ['id', 'url', 'email', 'password', 'label', 'weak_encryption'],
         where: { ownerUserId: userId },
         order: [['id', 'DESC']]
     });
@@ -199,15 +199,7 @@ app.post('/passwords/list', async (req, res) => {
             await upgradeWeakEncryption(element, userRecord, encryptionKey)
             element.password = decrypt(element.password, encryptionKey)
             element.email = decrypt(element.email, encryptionKey)
-            if(element.sharedByUserId){
-                const sharer = await modelsObj.User.findOne({
-                    attributes: ['email'], where: { id: element.sharedByUserId }
-                })
-                element.owner = sharer?.email
-            } else {
-                element.owner = 'Self'
-            }
-            return { ...element.toJSON(), owner: element.owner }
+            return element
         })
     );
     res.status(200)

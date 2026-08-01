@@ -54,7 +54,7 @@ function NewPasswordForm(){
         <div className='min-h-screen select-none px-4 py-6'>
             <div
                 onClick={() => navigate('/dashboard', {replace: true})}
-                className='md:cursor-pointer mb-5 flex items-center gap-1 w-fit transform transition-transform duration-200 hover:scale-115 text-l font-bold'
+                className='back-button'
             >
                 <MoveLeft/>
                 <span className='hidden md:inline'>Back</span>

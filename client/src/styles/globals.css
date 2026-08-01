@@ -23,3 +23,11 @@ body {
 .nav-bar-hover-mobile {
     @apply hover:text-cyan-700 transition-colors;
 }
+
+.back-button{
+    @apply md:cursor-pointer flex items-center gap-1 w-fit transform transition-transform duration-200 hover:scale-115 font-bold
+}
+
+.error-handling{
+    @apply text-red-500 text-sm mb-1
+}

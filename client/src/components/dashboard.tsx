@@ -12,7 +12,7 @@ function Dashboard(){
     const [ user, setUser ] = useState<{firstname: string; lastname: string; email: string} | null>(null)
     const [ isShareOpen, setIsShareOpen ] = useState(false)
     const [ sharedEmail, setIsSharedEmail ] = useState('')
-    const [ password, setPassword ] = useState<{id: string; url: string; label: string; password: string; owner: string}[] | string>()
+    const [ password, setPassword ] = useState<{id: string; url: string; label: string; password: string; email: string}[] | string>()
     const profileRef = useRef<HTMLDivElement | null>(null)
     const shareRef = useRef<HTMLDivElement | null>(null)
     const [ copiedID, setCopiedID ] = useState<string | null>(null)
@@ -210,7 +210,7 @@ function Dashboard(){
                                     <tr key={item.id}>
                                         <td>{item.url}</td>
                                         <td>{item.label}</td>
-                                        <td>{item.owner}</td>
+                                        <td>{item.email}</td>
                                         <td>
                                             <button
                                                 onClick={() => handleCopy(item.id, item.password)}

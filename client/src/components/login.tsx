@@ -2,9 +2,11 @@ import { Link, useNavigate } from "react-router-dom";
 import React, { useState } from 'react'
 import '../styles/globals.css'
 import { useEncryptionKey } from '../lib/EncryptionKeyContext'
+import { MoveLeft } from 'lucide-react'
 
 function Login(){
     const navigate = useNavigate()
+    const [ errorOccured, setErrorOccured ] = useState<{ email?: string; password?: string; encryption_key?: string; general?: string}>({})
     const { setEncryptionKey } = useEncryptionKey()
 
     const [formData, setFormData] = useState({
@@ -42,19 +44,30 @@ function Login(){
                 setEncryptionKey(formData.encryption_key)
                 navigate('/dashboard', { replace: true })
             } else {
-                alert(data.message || 'Login failed')
+                console.log(data.errors)
+                setErrorOccured(data.errors)
             }
         } catch (error) {
             console.error(error)
-            alert('Login failed')
+            setErrorOccured({ general: "Network error. Please try again." })
         }
     }
 
     return(
         <div className='min-h-screen select-none px-4 py-6'>
-            <form onSubmit={handleLogin} className='flex flex-col space-y-4 p-4 bg-gray-700 rounded-lg shadow-md max-w-md w-full mx-auto mt-20'>
+            <div
+                onClick={() => navigate('/', {replace: true})}
+                className='back-button'
+            >
+                <MoveLeft/>
+                <span className='hidden md:inline'>Back</span>
+            </div>
+            <form onSubmit={handleLogin} className='flex flex-col space-y-4 p-4 bg-gray-700 rounded-lg shadow-md max-w-md w-full mx-auto mt-10 md:mt-15'>
                 <h2 className='text-xl font-bold text-center'>Log-in</h2>
-                <div className='flex flex-col'>
+                { errorOccured?.general && (
+                    <p className='error-handling'>{errorOccured.general}</p>
+                )}   
+                <div className='flex flex-col mb-1'>
                     <label>Email</label>
                     <input
                         type='email'
@@ -62,10 +75,15 @@ function Login(){
                         value={formData.email}
                         onChange={handleChange}
                         required
-                        className='w-full border-2 rounded p-1'
+                        className={`w-full border-2 rounded p-1 focus:outline-none ${
+                            errorOccured?.email ? 'border-red-500 focus:outline-none' : ''
+                        }`}
                     />
                 </div>
-                <div className='flex flex-col'>
+                { errorOccured?.email && (
+                    <p className='error-handling'>{errorOccured.email}</p>
+                )}   
+                <div className='flex flex-col mb-1'>
                     <label>Password</label>
                     <input
                         type='password'
@@ -73,10 +91,15 @@ function Login(){
                         value={formData.password}
                         onChange={handleChange}
                         required
-                        className='w-full border-2 rounded p-1'
+                        className={`w-full border-2 rounded p-1 focus:outline-none ${
+                            errorOccured?.password ? 'border-red-500 focus:outline-none' : ''
+                        }`}
                     />
                 </div>
-                <div className='flex flex-col'>
+                { errorOccured?.password && (
+                    <p className='error-handling'>{errorOccured.password}</p>
+                )}   
+                <div className='flex flex-col mb-1'>
                     <label>Encryption Key</label>
                     <input
                         type='password'
@@ -84,9 +107,14 @@ function Login(){
                         value={formData.encryption_key}
                         onChange={handleChange}
                         required
-                        className='w-full border-2 rounded p-1'
+                        className={`w-full border-2 rounded p-1 focus:outline-none ${
+                            errorOccured?.encryption_key ? 'border-red-500 focus:outline-none' : ''
+                        }`}
                     />
                 </div>
+                { errorOccured?.encryption_key && (
+                    <p className='error-handling'>{errorOccured.encryption_key}</p>
+                )}   
                 <button type='submit' className='main-buttons'>Sign-in</button>
                 <div className="flex items-center my-2">
                     <div className="flex-1 h-px bg-white" />

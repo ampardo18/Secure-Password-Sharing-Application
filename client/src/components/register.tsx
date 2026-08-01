@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom"
 import React, {useState} from 'react'
+import { MoveLeft } from "lucide-react"
 
 function Register(){
     const navigate = useNavigate()
@@ -40,7 +41,7 @@ function Register(){
             if (response.ok){
                 navigate('/login', {replace: true})
             } else{
-                alert(data.message || "Registration failed")
+                console.log(data.message)
             }
 
         }catch(error){
@@ -50,7 +51,14 @@ function Register(){
 
     return(
         <div className='min-h-screen select-none px-4 py-6'>
-            <form onSubmit={handleRegister} className='flex flex-col space-y-4 p-4 bg-gray-700 rounded-lg shadow-md max-w-md w-full mx-auto mt-10'>
+            <div
+                onClick={() => navigate('/', {replace: true})}
+                className='back-button'
+            >
+                <MoveLeft/>
+                <span className='hidden md:inline'>Back</span>
+            </div>
+            <form onSubmit={handleRegister} className='flex flex-col space-y-4 p-4 bg-gray-700 rounded-lg shadow-md max-w-md w-full mx-auto mt-2'>
                 <h2 className='font-bold text-xl text-center'>Register</h2>
                 <div className="flex flex-col">
                     <label>Email</label>
