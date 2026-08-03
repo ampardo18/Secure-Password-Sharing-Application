@@ -2,11 +2,13 @@ import { Link, useNavigate } from "react-router-dom";
 import React, { useState } from 'react'
 import '../styles/globals.css'
 import { useEncryptionKey } from '../lib/EncryptionKeyContext'
-import { MoveLeft } from 'lucide-react'
+import { MoveLeft, Eye, EyeOff } from 'lucide-react'
 
 function Login(){
     const navigate = useNavigate()
     const [ errorOccured, setErrorOccured ] = useState<{ email?: string; password?: string; encryption_key?: string; general?: string}>({})
+    const [ showPassword, setShowPassword ] = useState(false)
+    const [ showEncryptionKey, setShowEncryptionKey] = useState(false)
     const { setEncryptionKey } = useEncryptionKey()
 
     const [formData, setFormData] = useState({
@@ -65,7 +67,7 @@ function Login(){
             <form onSubmit={handleLogin} className='flex flex-col space-y-4 p-4 bg-gray-700 rounded-lg shadow-md max-w-md w-full mx-auto mt-10 md:mt-15'>
                 <h2 className='text-xl font-bold text-center'>Log-in</h2>
                 { errorOccured?.general && (
-                    <p className='error-handling'>{errorOccured.general}</p>
+                    <span className='error-handling text-center'>{errorOccured.general}</span>
                 )}   
                 <div className='flex flex-col mb-1'>
                     <label>Email</label>
@@ -81,41 +83,69 @@ function Login(){
                     />
                 </div>
                 { errorOccured?.email && (
-                    <p className='error-handling'>{errorOccured.email}</p>
+                    <span className='error-handling mb-0'>{errorOccured.email}</span>
                 )}   
                 <div className='flex flex-col mb-1'>
                     <label>Password</label>
-                    <input
-                        type='password'
-                        name='password'
-                        value={formData.password}
-                        onChange={handleChange}
-                        required
-                        className={`w-full border-2 rounded p-1 focus:outline-none ${
-                            errorOccured?.password ? 'border-red-500 focus:outline-none' : ''
-                        }`}
-                    />
+                    <div className='relative'>
+                        <input
+                            type={showPassword ? 'text' : 'password'}
+                            name='password'
+                            value={formData.password}
+                            onChange={handleChange}
+                            required
+                            className={`w-full border-2 rounded p-1 pr-10 focus:outline-none ${
+                                errorOccured?.password ? 'border-red-500 focus:outline-none' : ''
+                            }`}
+                        />
+                        <button
+                            type='button'
+                            onClick={() => setShowPassword((prev) => !(prev))}
+                            className='absolute inset-y-0 right-0 flex items-center pr-3 text-white md:cursor-pointer'
+                            aria-label={showPassword ? 'Hide password' : 'Show password'}
+                        >
+                            {showPassword ? (
+                                <EyeOff className="w-5 h-5" />
+                            ) : (
+                                <Eye className="w-5 h-5" />
+                            )}
+                        </button>
+                    </div>
                 </div>
                 { errorOccured?.password && (
-                    <p className='error-handling'>{errorOccured.password}</p>
+                    <span className='error-handling mb-0'>{errorOccured.password}</span>
                 )}   
-                <div className='flex flex-col mb-1'>
+                <div className='flex flex-col mb-0'>
                     <label>Encryption Key</label>
-                    <input
-                        type='password'
-                        name='encryption_key'
-                        value={formData.encryption_key}
-                        onChange={handleChange}
-                        required
-                        className={`w-full border-2 rounded p-1 focus:outline-none ${
-                            errorOccured?.encryption_key ? 'border-red-500 focus:outline-none' : ''
-                        }`}
-                    />
+                    <div className='relative'>
+                        <input
+                            type={showEncryptionKey ? 'text' : 'password'}
+                            name='encryption_key'
+                            value={formData.encryption_key}
+                            onChange={handleChange}
+                            required
+                            className={`w-full border-2 rounded p-1 focus:outline-none ${
+                                errorOccured?.encryption_key ? 'border-red-500 focus:outline-none' : ''
+                            }`}
+                        />
+                        <button
+                            type='button'
+                            onClick={() => setShowEncryptionKey((prev) => !(prev))}
+                            className='absolute inset-y-0 right-0 flex items-center pr-3 text-white md:cursor-pointer'
+                            aria-label={showEncryptionKey ? 'Hide encryption key' : 'Show encryption key'}
+                        >
+                            {showEncryptionKey ? (
+                                <EyeOff className="w-5 h-5" />
+                            ) : (
+                                <Eye className="w-5 h-5" />
+                            )}
+                        </button>
+                    </div>
                 </div>
                 { errorOccured?.encryption_key && (
-                    <p className='error-handling'>{errorOccured.encryption_key}</p>
+                    <span className='error-handling'>{errorOccured.encryption_key}</span>
                 )}   
-                <button type='submit' className='main-buttons'>Sign-in</button>
+                <button type='submit' className={`main-buttons ${errorOccured?.encryption_key ? 'mt-0' : 'mt-4'}`}>Sign-in</button>
                 <div className="flex items-center my-2">
                     <div className="flex-1 h-px bg-white" />
                     <span className="px-2 text-sm text-white">or</span>

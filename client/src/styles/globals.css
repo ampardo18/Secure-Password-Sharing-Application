@@ -29,5 +29,5 @@ body {
 }
 
 .error-handling{
-    @apply text-red-500 text-sm mb-1
+    @apply text-red-500 text-sm font-bold
 }

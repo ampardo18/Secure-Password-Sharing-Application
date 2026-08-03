@@ -2,7 +2,7 @@ import '../styles/globals.css'
 import { useNavigate } from 'react-router-dom'
 import profileIcon from '../assets/profile-icon.png'
 import {useRef, useState, useEffect} from 'react'
-import { X, Plus, Check } from 'lucide-react'
+import { X, Plus, Check, Share, Copy } from 'lucide-react'
 import { useEncryptionKey } from '../lib/EncryptionKeyContext'
 
 function Dashboard(){
@@ -201,8 +201,8 @@ function Dashboard(){
                                     <th className='px-4 py-3 font-bold text-black whitespace-nowrap'>URL</th>
                                     <th className='px-4 py-3 font-bold text-black whitespace-nowrap'>Label</th>
                                     <th className='px-4 py-3 font-bold text-black whitespace-nowrap'>Owner</th>
-                                    <th className='px-4 py-3 font-bold text-black whitespace-nowrap'>Copy</th>
-                                    <th className='px-4 py-3 font-bold text-black whitespace-nowrap'>Share</th>
+                                    <th className='px-4 py-3 font-bold text-black whitespace-nowrap hidden md:table-cell'>Copy</th>
+                                    <th className='px-4 py-3 font-bold text-black whitespace-nowrap hidden md:table-cell'>Share</th>
                                 </tr>
                             </thead>
                             <tbody className='bg-gray-300 text-black font-bold text-center'>
@@ -211,7 +211,7 @@ function Dashboard(){
                                         <td>{item.url}</td>
                                         <td>{item.label}</td>
                                         <td>{item.email}</td>
-                                        <td>
+                                        <td className='hidden md:table-cell'>
                                             <button
                                                 onClick={() => handleCopy(item.id, item.password)}
                                                 className={`relative overflow-hidden font-bold text-white cursor-pointer h-10 w-20 rounded-2xl transition-colors duration-300 p-2 ${
@@ -234,7 +234,7 @@ function Dashboard(){
                                                 </span>
                                             </button>
                                         </td>
-                                        <td>
+                                        <td className='hidden md:table-cell'>
                                             <button className='bg-gray-600 font-bold text-white cursor-pointer h-10 w-20 rounded-2xl transform transition-transform duration-200 hover:bg-gray-500 p-2' onClick={() => setIsShareOpen(!isShareOpen)}>
                                                 Share
                                             </button>
@@ -245,7 +245,7 @@ function Dashboard(){
                                                             type='text'
                                                             placeholder='Enter username' 
                                                             onChange={e => setIsSharedEmail(e.target.value)}    
-                                                            className='w-full border-2 border-white rounded p-2 text-white'                                                   
+                                                            className='w-full border-2 border-white rounded p-2 text-white focus:outline-none'                                                   
                                                         />
                                                         <button className='main-buttons text-white' onClick={() => handleSharePassword(item.id)}>
                                                             Share
@@ -254,6 +254,47 @@ function Dashboard(){
                                                 </div>
                                             )}
                                         </td>
+                                        <div className='flex gap-4'>
+                                            <button
+                                                onClick={() => handleCopy(item.id, item.password)}
+                                                className={`relative rounded-2xl transition-colors duration-300 p-2 md:hidden ${
+                                                    copiedID === item.id ? 'bg-green-600' : ''
+                                                }`}
+                                                >
+                                                <span
+                                                    className={`transition-all duration-300 ${
+                                                        copiedID === item.id ? 'opacity-0 scale-90' : 'opacity-100 scale-100'
+                                                    }`}
+                                                >
+                                                    <Copy size={15}/>
+                                                </span>
+                                                <span
+                                                    className={`absolute inset-0 flex items-center justify-center transition-all duration-300 ${
+                                                        copiedID === item.id ? 'opacity-100 scale-100' : 'opacity-0 scale-90'
+                                                    }`}
+                                                >
+                                                    <Check size={15} />
+                                                </span>
+                                            </button>
+                                            <button className='md:hidden transform transition-transform duration-200 hover:scale-105' onClick={() => setIsShareOpen(!isShareOpen)}>
+                                                <Share size={15}/>
+                                            </button>
+                                            {isShareOpen && (
+                                                <div className='fixed inset-0 flex items-center justify-center bg-black/50'>
+                                                    <div className='bg-gray-600 p-6 rounded-lg shadow-lg w-80 flex gap-2' ref={shareRef}>
+                                                        <input
+                                                            type='text'
+                                                            placeholder='Enter username' 
+                                                            onChange={e => setIsSharedEmail(e.target.value)}    
+                                                            className='w-full border-2 border-white rounded p-2 text-white focus:outline-none'                                                   
+                                                        />
+                                                        <button className='main-buttons text-white' onClick={() => handleSharePassword(item.id)}>
+                                                            Share
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
                                     </tr>
                                 ))}
                             </tbody>

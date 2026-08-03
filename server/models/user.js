@@ -30,8 +30,9 @@ export default (sequelize, DataTypes) => {
         notEmpty: {
           msg: "Name is required"
         },
-        isAlphanumeric: {
-          msg: "Name can only contain letters"
+        is: {
+          args: /^[A-Za-z]+$/,
+          msg: "first name can only contain letters"
         },
         len: {
           args: [2, 100],
@@ -46,8 +47,9 @@ export default (sequelize, DataTypes) => {
         notEmpty: {
           msg: "Name is required"
         },
-        isAlphanumeric: {
-          msg: "Name can only contain letters"
+        is: {
+          args: /^[A-Za-z]+$/,
+          msg: "last name can only contain letters"
         },
         len: {
           args: [2, 100],

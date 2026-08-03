@@ -49,26 +49,40 @@ app.use(
 
 app.post("/register", async (req, res, next) => {
     const { email, password, first_name, last_name, encryption_key } = req.body
-    console.log("Received body:", req.body) 
-    const modelsObj=await models.default
+    const modelsObj = await models.default
+
     try {
-        const emailExists = await modelsObj.User.findOne({where: { email } })
+        const emailExists = await modelsObj.User.findOne({ where: { email } })
         if (emailExists) {
-          res.status(400)
-          return res.json({ message: "Email already exists" })
+            return res.status(400).json({ errors: [{ field: "email", message: "Email already exists" }] })
         }
-        const hashedPassword = await hashStr(password)
-        const result = await modelsObj.User.create({ 
-          email, 
-          password: hashedPassword, 
-          encryption_key: await hashStr(encryption_key), 
-          first_name, 
-          last_name 
-        });
-        res.json({ message: "Sign up is successful" })
+
+        const user = modelsObj.User.build({
+            email,
+            password,
+            encryption_key,
+            first_name,
+            last_name
+        })
+
+        await user.validate() 
+
+        user.password = await hashStr(password)
+        user.encryption_key = await hashStr(encryption_key)
+        await user.save()
+
+        return res.status(201).json({ message: "Sign up is successful" })
+
     } catch (error) {
-        console.error('Error during  sign up', error)
-        res.status(500)
+        if (error.name === 'SequelizeValidationError' || error.name === 'SequelizeUniqueConstraintError') {
+            const errors = error.errors.map(e => ({
+                field: e.path,
+                message: e.message
+            }))
+            return res.status(400).json({ message: "Validation failed", errors })
+        }
+        console.error('Error during sign up', error)
+        return res.status(500).json({ message: "Something went wrong" })
     }
 })
 
@@ -78,19 +92,27 @@ app.post('/login', async (req, res, next) => {
     try {
         const user = await modelsObj.User.findOne({ where: { email } })
         if (!user) {
-            res.status(400);
+            res.status(400)
             return res.json({ errors: { email: "Invalid email" } })
         }
+
+        const errors = {}
+
         const isPasswordValid = await bcrypt.compare(password, user.password)
         if (!isPasswordValid) {
-            res.status(400)
-            return res.json({ errors: { password: "Invalid password" } })
+            errors.password = "Invalid password"
         }
+
         const isEncryptionKeyValid = await bcrypt.compare(encryption_key, user.encryption_key)
-        if (!isEncryptionKeyValid){
-            res.status(400)
-            return res.json({ errors: { encryption_key: "Invalid encryption key" } })
+        if (!isEncryptionKeyValid) {
+            errors.encryption_key = "Invalid encryption key"
         }
+
+        if (Object.keys(errors).length > 0) {
+            res.status(400)
+            return res.json({ errors })
+        }
+
         const token = await generateJWT(user)
         res.cookie(COOKIE_NAME, token, {
             httpOnly: true,
