@@ -18,7 +18,7 @@ app.listen(port, () => {
 
 app.use(bodyParser.default.json())
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://127.0.0.1:5173', 'https://secure-password-sharing-application.vercel.app/'],
+  origin: ['http://localhost:5173', 'http://127.0.0.1:5173', 'https://secure-password-sharing-application.onrender.com'],
   credentials: true
 }))
 
