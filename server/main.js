@@ -176,11 +176,6 @@ app.post('/passwords/save', async (req, res) => {
             return res.json({ message: 'Unable to find the account' })
         }
 
-        const matched = await bcrypt.compare(encryption_key, userRecord.encryption_key)
-        if(!matched){
-            res.status(400);
-            return res.json({ message: 'Incorrect encryption key' })
-        }
         if(!(password && url)) {
             res.status(400);
             return res.json({ message: 'Missing parameters' })
@@ -211,11 +206,6 @@ app.post('/passwords/list', async (req, res) => {
     const userRecord = await modelsObj.User.findOne({
         attributes: ['encryption_key'], where: { id: userId }
     });
-    const matched = await bcrypt.compare(encryptionKey, userRecord.encryption_key)
-    if (!matched) {
-        res.status(400)
-        return res.json({message: 'Incorrect encryption key'})
-    }
     const passwordsArr = await Promise.all(
         passwords.map(async (element) => {
             await upgradeWeakEncryption(element, userRecord, encryptionKey)
@@ -243,22 +233,17 @@ app.post('/passwords/share-password', async (req, res) => {
         const userRecord = await modelsObj.User.findOne({
             attributes: ['encryption_key'], where: { id: userId }
         });
-        const matched = await bcrypt.compare(encryption_key, userRecord.encryption_key);
-        if (!matched) {
-            res.status(400)
-            return res.json({message: 'Incorrect encryption key'})
-        }
         const shareUserObj = await modelsObj.User.findOne({attributes: ['id', 'encryption_key'], where: { email } })
         if (!shareUserObj) {
             res.status(400)
-            return res.json({message: 'User with whom you want to share password does not exist'})
+            return res.json({errors: {email: 'User does not exist'}})
         }
         const existingSharedPassword = await modelsObj.UserPassword.findOne({
             attributes: ['id'], where: { source_password_id: password_id, ownerUserId: shareUserObj.id}
         });
         if (existingSharedPassword) {
             res.status(400)
-            return res.json({message: `This password is already shared with the user`})
+            return res.json({errors: {password: `This password is already shared with the user`}})
         }
         const decryptedEmail = decrypt(passwordRow.email, encryption_key)
         const encryptedSharedEmail = encrypt(decryptedEmail, shareUserObj.encryption_key)
@@ -279,7 +264,7 @@ app.post('/passwords/share-password', async (req, res) => {
     } catch (e) {
         console.error(e)
         res.status(500)
-        return res.json({message: 'An error occurred.'})
+        return res.json({errors: {general: 'Something went wrong. Please try again.'}})
     }
 })
 

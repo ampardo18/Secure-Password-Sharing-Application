@@ -27,6 +27,7 @@ function Login(){
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault()
+        setErrorOccured({})
         try{
             const response = await fetch(`${import.meta.env.VITE_PUBLIC_HOST}/login`, {
                 method: 'POST',

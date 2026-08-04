@@ -14,15 +14,18 @@ function Dashboard(){
     const [ sharedEmail, setIsSharedEmail ] = useState('')
     const [ password, setPassword ] = useState<{id: string; url: string; label: string; password: string; email: string}[] | string>()
     const profileRef = useRef<HTMLDivElement | null>(null)
-    const shareRef = useRef<HTMLDivElement | null>(null)
+    const shareRefDesktop = useRef<HTMLDivElement | null>(null)
+    const shareRefMobile = useRef<HTMLDivElement | null>(null)
     const [ copiedID, setCopiedID ] = useState<string | null>(null)
+    const [ errorOccured, setErrorOccured ] = useState<{ email?: string; password?: string; general?: string}>({})
     const { encryptionKey, setEncryptionKey } = useEncryptionKey()
 
     useEffect(() => {
         const handleOutsideClick = (event: MouseEvent) => {
             const target = event.target as Node
             const clickInsideProfile = profileRef.current?.contains(target)
-            const clickInsideShare = shareRef.current?.contains(target)
+            const clickInsideShare = shareRefDesktop.current?.contains(target) || shareRefMobile.current?.contains(target)
+
 
             if (!clickInsideProfile && !clickInsideShare){
                 setIsProfileOpen(false)
@@ -109,8 +112,9 @@ function Dashboard(){
     }
 
     const handleSharePassword = async (passwordID: string) => {
+        setErrorOccured({})
         try{
-            await fetch(`${import.meta.env.VITE_PUBLIC_HOST}/passwords/share-password`, {
+            const response = await fetch(`${import.meta.env.VITE_PUBLIC_HOST}/passwords/share-password`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -122,6 +126,14 @@ function Dashboard(){
                     email: sharedEmail
                 })
             })
+            const data = await response.json()
+            if(response.ok){
+                setIsShareOpen(false)
+                setErrorOccured({})
+            } else{
+                console.log(data.errors)
+                setErrorOccured(data.errors)
+            }
         }catch(error){
             console.error('Failed to share password to user:', error)
         }
@@ -194,7 +206,7 @@ function Dashboard(){
             )}
             <div className='px-4 py-6 flex justify-center md:justify-center lg:justify-center'>
                 <div className='w-full max-w-3xl overflow-hidden rounded-xl border border-gray-300 bg-gray-300 shadow-md mt-10 p-4'>
-                    <div className='overflow-x-auto'>
+                    <div className='overflow-x-auto max-h-60'>
                         <table className='min-w-full text-sm border-separate border-spacing-y-3'>
                             <thead className='bg-gray-300'>
                                 <tr>
@@ -235,66 +247,94 @@ function Dashboard(){
                                             </button>
                                         </td>
                                         <td className='hidden md:table-cell'>
-                                            <button className='bg-gray-600 font-bold text-white cursor-pointer h-10 w-20 rounded-2xl transform transition-transform duration-200 hover:bg-gray-500 p-2' onClick={() => setIsShareOpen(!isShareOpen)}>
+                                            <button 
+                                                className='bg-gray-600 font-bold text-white cursor-pointer h-10 w-20 rounded-2xl transform transition-transform duration-200 hover:bg-gray-500 p-2' 
+                                                onClick={() => {setErrorOccured({}), setIsShareOpen(!isShareOpen)}}
+                                            >
                                                 Share
                                             </button>
                                             {isShareOpen && (
                                                 <div className='fixed inset-0 flex items-center justify-center bg-black/50'>
-                                                    <div className='bg-gray-600 p-6 rounded-lg shadow-lg w-80 flex gap-2' ref={shareRef}>
+                                                    <div className='bg-gray-600 p-6 rounded-lg shadow-lg w-80 flex flex-col gap-2' ref={shareRefDesktop}>
                                                         <input
                                                             type='text'
                                                             placeholder='Enter username' 
-                                                            onChange={e => setIsSharedEmail(e.target.value)}    
-                                                            className='w-full border-2 border-white rounded p-2 text-white focus:outline-none'                                                   
+                                                            onChange={e => setIsSharedEmail(e.target.value)}
+                                                            className={`w-full border-2 rounded p-2 text-white focus:outline-none ${
+                                                                errorOccured?.general || errorOccured?.email || errorOccured?.password ? 'border-red-500' : ''
+                                                            }`}
                                                         />
+                                                        { errorOccured?.general && (
+                                                            <span className='error-handling'>{errorOccured.general}</span>
+                                                            )}  
+                                                        { errorOccured?.email && (
+                                                                <span className='error-handling'>{errorOccured.email}</span>
+                                                        )}
+                                                        { errorOccured?.password && (
+                                                                <span className='error-handling'>{errorOccured.password}</span>
+                                                        )}
                                                         <button className='main-buttons text-white' onClick={() => handleSharePassword(item.id)}>
                                                             Share
                                                         </button>
+
                                                     </div>
                                                 </div>
                                             )}
                                         </td>
-                                        <div className='flex gap-4'>
-                                            <button
-                                                onClick={() => handleCopy(item.id, item.password)}
-                                                className={`relative rounded-2xl transition-colors duration-300 p-2 md:hidden ${
-                                                    copiedID === item.id ? 'bg-green-600' : ''
-                                                }`}
-                                                >
-                                                <span
-                                                    className={`transition-all duration-300 ${
-                                                        copiedID === item.id ? 'opacity-0 scale-90' : 'opacity-100 scale-100'
+                                        <td className='md:hidden'>
+                                            <div className='flex gap-4'>
+                                                <button
+                                                    onClick={() => handleCopy(item.id, item.password)}
+                                                    className={`relative rounded-2xl transition-colors duration-300 p-2 md:hidden ${
+                                                        copiedID === item.id ? 'bg-green-600' : ''
                                                     }`}
-                                                >
-                                                    <Copy size={15}/>
-                                                </span>
-                                                <span
-                                                    className={`absolute inset-0 flex items-center justify-center transition-all duration-300 ${
-                                                        copiedID === item.id ? 'opacity-100 scale-100' : 'opacity-0 scale-90'
-                                                    }`}
-                                                >
-                                                    <Check size={15} />
-                                                </span>
-                                            </button>
-                                            <button className='md:hidden transform transition-transform duration-200 hover:scale-105' onClick={() => setIsShareOpen(!isShareOpen)}>
-                                                <Share size={15}/>
-                                            </button>
-                                            {isShareOpen && (
-                                                <div className='fixed inset-0 flex items-center justify-center bg-black/50'>
-                                                    <div className='bg-gray-600 p-6 rounded-lg shadow-lg w-80 flex gap-2' ref={shareRef}>
-                                                        <input
-                                                            type='text'
-                                                            placeholder='Enter username' 
-                                                            onChange={e => setIsSharedEmail(e.target.value)}    
-                                                            className='w-full border-2 border-white rounded p-2 text-white focus:outline-none'                                                   
-                                                        />
-                                                        <button className='main-buttons text-white' onClick={() => handleSharePassword(item.id)}>
-                                                            Share
-                                                        </button>
+                                                    >
+                                                    <span
+                                                        className={`transition-all duration-300 ${
+                                                            copiedID === item.id ? 'opacity-0 scale-90' : 'opacity-100 scale-100'
+                                                        }`}
+                                                    >
+                                                        <Copy size={15}/>
+                                                    </span>
+                                                    <span
+                                                        className={`absolute inset-0 flex items-center justify-center transition-all duration-300 ${
+                                                            copiedID === item.id ? 'opacity-100 scale-100' : 'opacity-0 scale-90'
+                                                        }`}
+                                                    >
+                                                        <Check size={15} />
+                                                    </span>
+                                                </button>
+                                                <button className='md:hidden transform transition-transform duration-200 hover:scale-105' onClick={() =>  {setErrorOccured({}), setIsShareOpen(!isShareOpen)}}>
+                                                    <Share size={15}/>
+                                                </button>
+                                                {isShareOpen && (
+                                                    <div className='fixed inset-0 flex items-center justify-center bg-black/50'>
+                                                        <div className='bg-gray-600 p-6 rounded-lg shadow-lg w-80 flex flex-col gap-2' ref={shareRefMobile}>
+                                                            <input
+                                                                type='text'
+                                                                placeholder='Enter username' 
+                                                                onChange={e => setIsSharedEmail(e.target.value)}
+                                                                className={`w-full border-2 rounded p-2 text-white focus:outline-none ${
+                                                                    errorOccured?.general || errorOccured?.email || errorOccured?.password ? 'border-red-500' : ''
+                                                                }`}
+                                                            />
+                                                            { errorOccured?.general && (
+                                                                <span className='error-handling'>{errorOccured.general}</span>
+                                                            )}  
+                                                            { errorOccured?.email && (
+                                                                <span className='error-handling'>{errorOccured.email}</span>
+                                                            )}
+                                                            { errorOccured?.password && (
+                                                                <span className='error-handling'>{errorOccured.password}</span>
+                                                            )} 
+                                                            <button className='main-buttons text-white' onClick={() => handleSharePassword(item.id)}>
+                                                                Share
+                                                            </button>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            )}
-                                        </div>
+                                                )}
+                                            </div>
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>

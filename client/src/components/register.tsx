@@ -25,6 +25,7 @@ function Register(){
 
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault()
+        setErrors({})
         try{
             const response = await fetch(`${import.meta.env.VITE_PUBLIC_HOST}/register`, {
                 method: 'POST',
