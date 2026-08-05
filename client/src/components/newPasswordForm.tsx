@@ -7,7 +7,6 @@ import { useEncryptionKey } from '../lib/EncryptionKeyContext'
 function NewPasswordForm(){
     const navigate = useNavigate()
     const [ showPassword, setShowPassword ] = useState(false)
-    const [ showEncryptionKey, setShowEncryptionKey] = useState(false)
     const { encryptionKey } = useEncryptionKey() 
 
     const [formData, setFormData] = useState({
