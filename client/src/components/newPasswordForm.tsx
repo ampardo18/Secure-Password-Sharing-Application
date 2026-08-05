@@ -127,7 +127,7 @@ function NewPasswordForm(){
                             className='absolute inset-y-0 right-0 flex items-center pr-3 text-white md:cursor-pointer'
                             aria-label={showEncryptionKey ? 'Hide password' : 'Show password'}
                         >
-                            {showPassword ? (
+                            {showEncryptionKey ? (
                                 <EyeOff className="w-5 h-5" />
                             ) : (
                                 <Eye className="w-5 h-5" />
