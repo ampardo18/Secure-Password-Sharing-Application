@@ -116,7 +116,7 @@ app.post('/login', async (req, res, next) => {
         const token = await generateJWT(user)
         res.cookie(COOKIE_NAME, token, {
             httpOnly: true,
-            sameSite: 'lax',
+            sameSite: 'none',
             secure: false,
             maxAge: 1000 * 60 * 60 * 8
         })
@@ -130,7 +130,7 @@ app.post('/login', async (req, res, next) => {
 app.post('/logout', (req, res) => {
     res.clearCookie('authToken', {
         httpOnly: true, 
-        sameSite: 'lax',
+        sameSite: 'none',
         secure: false
     })
     res.json({message: 'Logged out successfully'})
