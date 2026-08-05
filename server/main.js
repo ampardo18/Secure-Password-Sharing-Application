@@ -117,7 +117,7 @@ app.post('/login', async (req, res, next) => {
         res.cookie(COOKIE_NAME, token, {
             httpOnly: true,
             sameSite: 'none',
-            secure: false,
+            secure: true,
             maxAge: 1000 * 60 * 60 * 8
         })
         res.json({ message: "Login successful" })
@@ -131,7 +131,7 @@ app.post('/logout', (req, res) => {
     res.clearCookie('authToken', {
         httpOnly: true, 
         sameSite: 'none',
-        secure: false
+        secure: true
     })
     res.json({message: 'Logged out successfully'})
 })
