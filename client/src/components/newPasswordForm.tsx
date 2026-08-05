@@ -2,11 +2,13 @@ import '../styles/globals.css'
 import { useNavigate } from 'react-router-dom'
 import React, { useState } from 'react'
 import { MoveLeft, Eye, EyeOff } from 'lucide-react'
+import { useEncryptionKey } from '../lib/EncryptionKeyContext'
 
 function NewPasswordForm(){
     const navigate = useNavigate()
     const [ showPassword, setShowPassword ] = useState(false)
     const [ showEncryptionKey, setShowEncryptionKey] = useState(false)
+    const { encryptionKey } = useEncryptionKey() 
 
     const [formData, setFormData] = useState({
         url: '',
@@ -36,7 +38,7 @@ function NewPasswordForm(){
                     url: formData.url,
                     label: formData.label,
                     password: formData.password,
-                    encryption_key: formData.encryption_key
+                    encryption_key: encryptionKey
                 })
             })
 
@@ -103,31 +105,6 @@ function NewPasswordForm(){
                             aria-label={showPassword ? 'Hide password' : 'Show password'}
                         >
                             {showPassword ? (
-                                <EyeOff className="w-5 h-5" />
-                            ) : (
-                                <Eye className="w-5 h-5" />
-                            )}
-                        </button>
-                    </div>
-                </div>
-                <div className='flex flex-col'>
-                    <label>Encryption Key</label>
-                    <div className='relative'>
-                        <input 
-                            type={showEncryptionKey ? 'text' : 'password'}
-                            name='encryption_key'
-                            value={formData.encryption_key}
-                            onChange={handleChange}
-                            required
-                            className='w-full border-2 rounded p-1 focus:outline-none'
-                        />
-                        <button
-                            type='button'
-                            onClick={() => setShowEncryptionKey((prev) => !(prev))}
-                            className='absolute inset-y-0 right-0 flex items-center pr-3 text-white md:cursor-pointer'
-                            aria-label={showEncryptionKey ? 'Hide password' : 'Show password'}
-                        >
-                            {showEncryptionKey ? (
                                 <EyeOff className="w-5 h-5" />
                             ) : (
                                 <Eye className="w-5 h-5" />

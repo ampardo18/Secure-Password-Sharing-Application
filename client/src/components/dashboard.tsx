@@ -206,7 +206,7 @@ function Dashboard(){
             )}
             <div className='px-4 py-6 flex justify-center md:justify-center lg:justify-center'>
                 <div className='w-full max-w-3xl overflow-hidden rounded-xl border border-gray-300 bg-gray-300 shadow-md mt-10 p-4'>
-                    <div className='overflow-x-auto max-h-60'>
+                    <div className='overflow-x-auto max-h-70'>
                         <table className='min-w-full text-sm border-separate border-spacing-y-3'>
                             <thead className='bg-gray-300'>
                                 <tr>
